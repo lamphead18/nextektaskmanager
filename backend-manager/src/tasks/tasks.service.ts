@@ -26,6 +26,13 @@ export class TasksService {
         status: status ? status : undefined,
         title: search ? { contains: search, mode: 'insensitive' } : undefined,
       },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        createdAt: true,
+      },
     });
   }
 

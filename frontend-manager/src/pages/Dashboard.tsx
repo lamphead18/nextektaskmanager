@@ -6,67 +6,43 @@ interface Task {
   title: string;
   description: string;
   status: string;
+  createdAt: string;
 }
 
 function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  const fetchTasks = async () => {
-    const token = localStorage.getItem("token");
-    let url = "http://localhost:3000/tasks";
-
-    const params = new URLSearchParams();
-    if (statusFilter) params.append("status", statusFilter);
-    if (searchQuery) params.append("search", searchQuery);
-
-    if (params.toString()) url += `?${params.toString()}`;
-
-    try {
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setTasks(data);
-      setLoading(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
-    fetchTasks();
-  }, [statusFilter, searchQuery]);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    fetch("http://localhost:3000/tasks", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setTasks(data);
+        setLoading(false);
+      })
+      .catch((err) => console.error(err));
+  }, [navigate]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Suas Tarefas</h1>
-
-      <div className="flex gap-4 mb-4">
-        <select
-          className="select select-bordered"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="">Todos</option>
-          <option value="PENDENTE">Pendente</option>
-          <option value="EM_ANDAMENTO">Em Andamento</option>
-          <option value="CONCLUIDA">Concluída</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Buscar por título"
-          className="input input-bordered"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button className="btn btn-primary" onClick={fetchTasks}>
-          Buscar
-        </button>
-      </div>
 
       {loading ? (
         <p>Carregando tarefas...</p>
@@ -78,6 +54,9 @@ function Dashboard() {
             <li key={task.id} className="p-4 bg-gray-200 rounded mb-2">
               <h3 className="font-bold">{task.title}</h3>
               <p>{task.description}</p>
+              <p className="text-sm text-gray-600">
+                Criado em: {formatDate(task.createdAt)}
+              </p>
               <span className="text-sm text-gray-600">
                 Status: {task.status}
               </span>
@@ -111,4 +90,5 @@ function Dashboard() {
     </div>
   );
 }
+
 export default Dashboard;
