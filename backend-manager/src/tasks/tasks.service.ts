@@ -13,7 +13,7 @@ export class TasksService {
       data: {
         title: dto.title,
         description: dto.description,
-        status: dto.status || TaskStatus.PENDENTE, // Padrão: PENDENTE
+        status: dto.status || TaskStatus.PENDENTE,
         userId,
       },
     });
