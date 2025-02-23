@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -7,26 +7,26 @@ import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
+
   constructor(
     private prisma: PrismaService,
     private redisService: RedisService,
   ) {}
 
   private async invalidateCache(userId: string) {
-    console.log(`🗑️ Limpando cache para o usuário ${userId}`);
-    const keysToDelete = [
-      `tasks:${userId}:all:page1`,
-      `tasks:${userId}:PENDENTE:page1`,
-      `tasks:${userId}:EM_ANDAMENTO:page1`,
-      `tasks:${userId}:CONCLUIDA:page1`,
-    ];
-
-    for (const key of keysToDelete) {
-      await this.redisService.deleteKey(key);
-    }
+    this.logger.debug(`🗑️ Limpando cache para o usuário ${userId}`);
+    await this.redisService.deleteKey(`tasks:${userId}:all:page1`);
+    await this.redisService.deleteKey(`tasks:${userId}:PENDENTE:page1`);
+    await this.redisService.deleteKey(`tasks:${userId}:EM_ANDAMENTO:page1`);
+    await this.redisService.deleteKey(`tasks:${userId}:CONCLUIDA:page1`);
   }
 
   async createTask(userId: string, dto: CreateTaskDto) {
+    this.logger.log(
+      `➕ Criando nova tarefa para usuário ${userId}: ${JSON.stringify(dto)}`,
+    );
+
     const newTask = await this.prisma.task.create({
       data: {
         title: dto.title,
@@ -37,6 +37,7 @@ export class TasksService {
     });
 
     await this.invalidateCache(userId);
+    this.logger.log(`✅ Tarefa criada: ${JSON.stringify(newTask)}`);
     return newTask;
   }
 
@@ -48,18 +49,18 @@ export class TasksService {
     limit: number = 5,
   ) {
     const cacheKey = `tasks:${userId}:${status || 'all'}:page${page}`;
+    this.logger.debug(
+      `🔍 Buscando tarefas do usuário ${userId}, cacheKey: ${cacheKey}`,
+    );
 
-    console.log(`🔍 Buscando no cache Redis com chave: ${cacheKey}`);
     const cachedTasks = await this.redisService.getKey(cacheKey);
 
     if (cachedTasks) {
-      console.log(`✅ Dados encontrados no cache!`);
+      this.logger.debug(`✅ Dados encontrados no cache!`);
       return JSON.parse(cachedTasks);
     }
 
-    console.log(`🚨 Nenhum dado no cache. Buscando no banco de dados...`);
-
-    const skip = (page - 1) * limit;
+    this.logger.warn(`🚨 Nenhum dado no cache. Buscando no banco de dados...`);
 
     const tasks = await this.prisma.task.findMany({
       where: {
@@ -68,14 +69,14 @@ export class TasksService {
         title: search ? { contains: search, mode: 'insensitive' } : undefined,
       },
       take: limit,
-      skip: skip,
+      skip: (page - 1) * limit,
       orderBy: { createdAt: 'desc' },
     });
 
     const totalTasks = await this.prisma.task.count({
       where: {
         userId,
-        status: status ? status : undefined,
+        status,
         title: search ? { contains: search, mode: 'insensitive' } : undefined,
       },
     });
@@ -87,18 +88,23 @@ export class TasksService {
       currentPage: page,
     };
 
-    console.log(`💾 Salvando no Redis com chave: ${cacheKey}`);
+    this.logger.log(`💾 Salvando dados no cache para o usuário ${userId}`);
     await this.redisService.setKey(cacheKey, JSON.stringify(response));
 
     return response;
   }
 
   async getTaskById(userId: string, taskId: string) {
+    this.logger.log(`🔎 Buscando tarefa ${taskId} do usuário ${userId}`);
+
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, userId },
     });
 
     if (!task) {
+      this.logger.error(
+        `❌ Tarefa ${taskId} não encontrada para usuário ${userId}`,
+      );
       throw new NotFoundException('Tarefa não encontrada.');
     }
 
@@ -106,6 +112,10 @@ export class TasksService {
   }
 
   async updateTask(userId: string, taskId: string, dto: UpdateTaskDto) {
+    this.logger.log(
+      `✏️ Atualizando tarefa ${taskId} do usuário ${userId}: ${JSON.stringify(dto)}`,
+    );
+
     const task = await this.getTaskById(userId, taskId);
 
     const updatedTask = await this.prisma.task.update({
@@ -118,17 +128,18 @@ export class TasksService {
     });
 
     await this.invalidateCache(userId);
+    this.logger.log(`✅ Tarefa atualizada: ${JSON.stringify(updatedTask)}`);
     return updatedTask;
   }
 
   async deleteTask(userId: string, taskId: string) {
+    this.logger.warn(`🗑️ Excluindo tarefa ${taskId} do usuário ${userId}`);
+
     const task = await this.getTaskById(userId, taskId);
 
-    await this.prisma.task.delete({
-      where: { id: task.id },
-    });
+    await this.prisma.task.delete({ where: { id: task.id } });
 
-    console.log(`🗑️ Excluindo tarefa ${taskId} e invalidando cache...`);
     await this.invalidateCache(userId);
+    this.logger.log(`✅ Tarefa ${taskId} excluída com sucesso!`);
   }
 }
