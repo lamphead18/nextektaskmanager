@@ -4,11 +4,12 @@ import {
   Post,
   Body,
   Param,
-  Put,
   Delete,
+  Put,
+  Query,
   UseGuards,
   Req,
-  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -23,35 +24,56 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  create(@Req() req: AuthenticatedRequest, @Body() dto: CreateTaskDto) {
-    return this.tasksService.createTask(req.user.userId, dto);
+  async createTask(
+    @Req() req: AuthenticatedRequest,
+    @Body() createTaskDto: CreateTaskDto,
+  ) {
+    return this.tasksService.createTask(req.user.userId, createTaskDto);
   }
 
   @Get()
-  findAll(
+  async getUserTasks(
     @Req() req: AuthenticatedRequest,
-    @Query('status') status?: TaskStatus,
+    @Query('status') status?: string,
     @Query('search') search?: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 5,
   ) {
-    return this.tasksService.getUserTasks(req.user.userId, status, search);
+    const validStatus = Object.values(TaskStatus).includes(status as TaskStatus)
+      ? (status as TaskStatus)
+      : undefined;
+
+    return this.tasksService.getUserTasks(
+      req.user.userId,
+      validStatus,
+      search,
+      page,
+      limit,
+    );
   }
 
   @Get(':id')
-  findOne(@Req() req: AuthenticatedRequest, @Param('id') taskId: string) {
+  async getTaskById(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') taskId: string,
+  ) {
     return this.tasksService.getTaskById(req.user.userId, taskId);
   }
 
   @Put(':id')
-  update(
+  async updateTask(
     @Req() req: AuthenticatedRequest,
     @Param('id') taskId: string,
-    @Body() dto: UpdateTaskDto,
+    @Body() updateTaskDto: UpdateTaskDto,
   ) {
-    return this.tasksService.updateTask(req.user.userId, taskId, dto);
+    return this.tasksService.updateTask(req.user.userId, taskId, updateTaskDto);
   }
 
   @Delete(':id')
-  remove(@Req() req: AuthenticatedRequest, @Param('id') taskId: string) {
+  async deleteTask(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') taskId: string,
+  ) {
     return this.tasksService.deleteTask(req.user.userId, taskId);
   }
 }
