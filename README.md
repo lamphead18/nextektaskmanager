@@ -121,4 +121,3 @@ DELETE	/tasks/:id	Excluir uma tarefa
 
 📜 Licença
 Este projeto é licenciado sob a MIT License.
-```
