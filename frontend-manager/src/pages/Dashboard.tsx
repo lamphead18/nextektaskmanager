@@ -32,6 +32,11 @@ function Dashboard() {
       .catch((err) => console.error(err));
   }, [navigate]);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -42,7 +47,12 @@ function Dashboard() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Suas Tarefas</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold mb-4">Suas Tarefas</h1>
+        <button className="btn btn-error" onClick={handleLogout}>
+          Sair
+        </button>
+      </div>
 
       {loading ? (
         <p>Carregando tarefas...</p>

@@ -58,6 +58,12 @@ function Login() {
           />
           <button className="btn btn-primary w-full">Entrar</button>
         </form>
+        <p className="mt-4 text-center">
+          Ainda não tem uma conta?{" "}
+          <a href="/register" className="text-blue-500 hover:underline">
+            Registre-se aqui
+          </a>
+        </p>
       </div>
     </div>
   );
