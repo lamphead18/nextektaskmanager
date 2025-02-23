@@ -77,9 +77,15 @@ cd nextek-manager
 Copiar
 Editar
 cd backend-manager
-cp .env.example .env  # Configure suas variáveis de ambiente
+cp .env.example .env #configura seu .env conforme abaixo
 npm install
 npm run start:dev
+```
+```sh
+Para fins de exemplo, utilize este .env:
+DATABASE_URL="postgresql://postgres:123@localhost:5432/task_manager"
+JWT_SECRET="123"
+JWT_EXPIRES_IN="1h"
 ```
 
 ### 📌 3. Configurar o Frontend
