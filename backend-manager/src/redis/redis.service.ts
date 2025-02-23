@@ -34,4 +34,20 @@ export class RedisService {
   async existsKey(key: string) {
     return await this.client.exists(key);
   }
+
+  async scanKeys(pattern: string): Promise<string[]> {
+    const keys: string[] = [];
+    let cursor = 0;
+
+    do {
+      const reply = await this.client.scan(cursor, {
+        MATCH: pattern,
+        COUNT: 100,
+      });
+      cursor = reply.cursor;
+      keys.push(...reply.keys);
+    } while (cursor !== 0);
+
+    return keys;
+  }
 }

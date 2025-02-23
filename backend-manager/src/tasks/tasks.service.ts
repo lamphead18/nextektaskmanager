@@ -16,10 +16,27 @@ export class TasksService {
 
   private async invalidateCache(userId: string) {
     this.logger.debug(`🗑️ Limpando cache para o usuário ${userId}`);
+
     await this.redisService.deleteKey(`tasks:${userId}:all:page1`);
     await this.redisService.deleteKey(`tasks:${userId}:PENDENTE:page1`);
     await this.redisService.deleteKey(`tasks:${userId}:EM_ANDAMENTO:page1`);
     await this.redisService.deleteKey(`tasks:${userId}:CONCLUIDA:page1`);
+
+    const searchKeys = await this.redisService.scanKeys(
+      `tasks:${userId}:search:*`,
+    );
+    for (const key of searchKeys) {
+      await this.redisService.deleteKey(key);
+    }
+
+    const paginationKeys = await this.redisService.scanKeys(
+      `tasks:${userId}:all:search:none:page*`,
+    );
+    for (const key of paginationKeys) {
+      await this.redisService.deleteKey(key);
+    }
+
+    this.logger.debug(`✅ Cache completamente limpo para o usuário ${userId}`);
   }
 
   async createTask(userId: string, dto: CreateTaskDto) {
@@ -48,16 +65,18 @@ export class TasksService {
     page: number = 1,
     limit: number = 5,
   ) {
-    const cacheKey = `tasks:${userId}:${status || 'all'}:page${page}`;
+    const cacheKey = `tasks:${userId}:${status || 'all'}:search:${search || 'none'}:page${page}`;
+
     this.logger.debug(
       `🔍 Buscando tarefas do usuário ${userId}, cacheKey: ${cacheKey}`,
     );
 
-    const cachedTasks = await this.redisService.getKey(cacheKey);
-
-    if (cachedTasks) {
-      this.logger.debug(`✅ Dados encontrados no cache!`);
-      return JSON.parse(cachedTasks);
+    if (!search) {
+      const cachedTasks = await this.redisService.getKey(cacheKey);
+      if (cachedTasks) {
+        this.logger.debug(`✅ Dados encontrados no cache!`);
+        return JSON.parse(cachedTasks);
+      }
     }
 
     this.logger.warn(`🚨 Nenhum dado no cache. Buscando no banco de dados...`);
@@ -88,8 +107,10 @@ export class TasksService {
       currentPage: page,
     };
 
-    this.logger.log(`💾 Salvando dados no cache para o usuário ${userId}`);
-    await this.redisService.setKey(cacheKey, JSON.stringify(response));
+    if (!search) {
+      this.logger.log(`💾 Salvando dados no cache para o usuário ${userId}`);
+      await this.redisService.setKey(cacheKey, JSON.stringify(response));
+    }
 
     return response;
   }
