@@ -1,99 +1,120 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 📝 Nextek Manager - Gestão de Tarefas
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Um sistema de **gestão de tarefas** desenvolvido com **NestJS** no backend e **React** no frontend. O projeto implementa **autenticação JWT**, **cache com Redis**, **paginação**, **filtros**, e segue uma **arquitetura modular**.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🚀 Tecnologias Utilizadas
 
-## Project setup
+### 🔹 Backend
 
-```bash
-$ npm install
+- **NestJS** (Framework Node.js)
+- **Prisma ORM** (Banco de dados PostgreSQL)
+- **Redis** (Gerenciamento de cache)
+- **Passport.js** (Autenticação JWT)
+- **Docker** (Ambiente de desenvolvimento)
+- **pgAdmin4** (Gerenciamento do PostgreSQL)
+
+### 🔹 Frontend
+
+- **React.js** (Criado com Vite)
+- **TypeScript**
+- **TailwindCSS** + **DaisyUI** (Estilização)
+- **React Router** (Navegação entre páginas)
+
+---
+
+## ✅ Requisitos do Projeto
+
+### 📌 Requisitos Funcionais
+
+✔️ O usuário pode **cadastrar**, **editar**, **visualizar** e **excluir** tarefas.  
+✔️ O sistema permite **filtrar tarefas por status** e **buscar por título**.  
+✔️ Implementação de **autenticação JWT** para proteger rotas.  
+✔️ O backend usa **cache com Redis** para melhorar a performance das requisições.  
+✔️ **Paginação** de tarefas para evitar sobrecarga.  
+✔️ Logs detalhados de **acessos** e **ações no sistema**.
+
+### 📌 Requisitos Não Funcionais
+
+✔️ O sistema utiliza **Redis** como cache de dados.  
+✔️ O backend está estruturado seguindo **arquitetura modular**.  
+✔️ O banco de dados PostgreSQL é gerenciado via **Prisma ORM**.  
+✔️ Utilização de **middlewares** para logging e autenticação.  
+✔️ Interface responsiva e otimizada.
+
+---
+
+## 🏗️ Arquitetura e Configuração
+
+### 🔹 Arquitetura do Redis
+
+Utilizamos **Redis como um cache store** para armazenar tarefas e reduzir a carga no banco de dados.
+
+- As tarefas são armazenadas com **chaves únicas por usuário e parâmetros da requisição**.
+- O cache é **invalidado sempre que ocorre uma alteração** (criação, edição, exclusão).
+
+Exemplo de chave no Redis:
+
+tasks:{userId}:status:{status}:search:{query}:page
+
+---
+
+## 🔧 Configuração e Execução
+
+### 📌 1. Clonar o repositório
+
+```sh
+git clone https://github.com/seu-usuario/nextek-manager.git
+cd nextek-manager
+
+📌 2. Configurar o Backend
+sh
+Copiar
+Editar
+cd backend-manager
+cp .env.example .env  # Configure suas variáveis de ambiente
+npm install
+npm run start:dev
+
+📌 3. Configurar o Frontend
+sh
+Copiar
+Editar
+cd ../frontend-manager
+npm install
+npm run dev
+
+📌 4. Subindo o Redis com Docker (Opcional)
+sh
+Copiar
+Editar
+docker run --name redis -p 6379:6379 -d redis
+
+🛠️ Endpoints da API
+
+🔹 Autenticação
+Método	Rota	Descrição
+POST	/auth/login	Autenticação de usuário
+
+🔹 Tarefas
+Método	Rota	Descrição
+POST	/tasks	Criar uma nova tarefa
+GET	/tasks	Listar todas as tarefas
+GET	/tasks/:id	Buscar uma tarefa por ID
+PUT	/tasks/:id	Atualizar uma tarefa existente
+DELETE	/tasks/:id	Excluir uma tarefa
+
+📌 Fluxo de Uso
+1️⃣ Usuário se autentica via /auth/login e recebe um token JWT.
+2️⃣ Faz requisições autenticadas para /tasks para criar, editar e excluir tarefas.
+3️⃣ As tarefas são armazenadas em cache no Redis para otimizar a busca.
+4️⃣ Quando uma tarefa é alterada, o cache correspondente é invalidado automaticamente.
+5️⃣ O frontend consome a API para exibir e manipular as tarefas.
+
+📜 Licença
+Este projeto é licenciado sob a MIT License.
 ```
-
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
