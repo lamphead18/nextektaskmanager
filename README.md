@@ -70,29 +70,33 @@ tasks:{userId}:status:{status}:search:{query}:page
 ```sh
 git clone https://github.com/seu-usuario/nextek-manager.git
 cd nextek-manager
+```
 
-📌 2. Configurar o Backend
-sh
+### 📌 2. Configurar o Backend
+```sh
 Copiar
 Editar
 cd backend-manager
 cp .env.example .env  # Configure suas variáveis de ambiente
 npm install
 npm run start:dev
+```
 
-📌 3. Configurar o Frontend
-sh
+### 📌 3. Configurar o Frontend
+```sh
 Copiar
 Editar
 cd ../frontend-manager
 npm install
 npm run dev
+```
 
-📌 4. Subindo o Redis com Docker (Opcional)
-sh
+### 📌 4. Subindo o Redis com Docker (Opcional)
+```sh
 Copiar
 Editar
 docker run --name redis -p 6379:6379 -d redis
+```
 
 🛠️ Endpoints da API
 
